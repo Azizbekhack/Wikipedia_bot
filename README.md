@@ -22,3 +22,5 @@ Linux/Mac
 ```shell
 python3 app.py
 ```
+
+![image](https://github.com/Azizbekhack/Wikipedia_bot/assets/170541584/59a34f99-0188-42b3-a191-3b16a3b4ecbc)
