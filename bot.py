@@ -7,6 +7,10 @@ from data import config
 import asyncio
 import logging
 import sys
+import requests
+from cat import get_cat_image
+from wiki import malumot
+from aiogram.types import Message,input_file
 from menucommands.set_bot_commands  import set_default_commands
 from baza.sqlite import Database
 from filters.admin import IsBotAdminFilter
@@ -26,7 +30,7 @@ dp = Dispatcher()
 
 
 
-@dp.message(CommandStart())
+@dp.message(CommandStart(),F.chat.func(lambda chat: chat.type == "private"))
 async def start_command(message:Message):
     full_name = message.from_user.full_name
     telegram_id = message.from_user.id
@@ -35,32 +39,6 @@ async def start_command(message:Message):
         await message.answer(text="Assalomu alaykum, botimizga hush kelibsiz")
     except:
         await message.answer(text="Assalomu alaykum")
-
-
-@dp.message(IsCheckSubChannels())
-async def kanalga_obuna(message:Message):
-    text = ""
-    inline_channel = InlineKeyboardBuilder()
-    for index,channel in enumerate(CHANNELS):
-        ChatInviteLink = await bot.create_chat_invite_link(channel)
-        inline_channel.add(InlineKeyboardButton(text=f"{index+1}-kanal",url=ChatInviteLink.invite_link))
-    inline_channel.adjust(1,repeat=True)
-    button = inline_channel.as_markup()
-    await message.answer(f"{text} kanallarga azo bo'ling",reply_markup=button)
-
-
-
-#help commands
-@dp.message(Command("help"))
-async def help_commands(message:Message):
-    await message.answer("Sizga qanday yordam kerak")
-
-
-
-#about commands
-@dp.message(Command("about"))
-async def about_commands(message:Message):
-    await message.answer("Sifat 2024")
 
 
 @dp.message(Command("admin"),IsBotAdminFilter(ADMINS))
@@ -79,6 +57,7 @@ async def advert_dp(message:Message,state:FSMContext):
     await state.set_state(Adverts.adverts)
     await message.answer(text="Reklama yuborishingiz mumkin !")
 
+
 @dp.message(Adverts.adverts)
 async def send_advert(message:Message,state:FSMContext):
     
@@ -96,6 +75,117 @@ async def send_advert(message:Message,state:FSMContext):
     
     await message.answer(f"Reklama {count}ta foydalanuvchiga yuborildi")
     await state.clear()
+
+
+
+# @dp.message(F.new_chat_member)
+# async def new_member(message:Message):
+#     user = message.new_chat_member.get("first_name")
+#     await message.answer(f"{user} Guruhga xush kelibsiz!")
+#     await message.delete()
+
+# @dp.message(F.left_chat_member)
+# async def new_member(message:Message):
+#     # print(message.new_chat_member)
+#     user = message.left_chat_member.full_name
+#     await message.answer(f"{user} Xayr!")
+#     await message.delete()
+
+
+# xaqoratli_sozlar = {"tentak","jinni"}
+# @dp.message(and_f(F.chat.func(lambda chat: chat.type == "supergroup"),F.text ))
+# async def tozalash(message:Message):
+#     text = message.text
+#     print(text)
+#     for soz in xaqoratli_sozlar:
+#         print(soz,text.lower().find(soz))
+#         if text.lower().find(soz)!=-1 :
+#             user_id =  message.from_user.id
+#             until_date = int(time()) + 60 # 1minut guruhga yoza olmaydi
+#             permission = ChatPermissions(can_send_messages=False)
+#             await message.chat.restrict(user_id=user_id,permissions=permission,until_date=until_date)
+#             await message.answer(text=f"{message.from_user.mention_html()} guruhda so'kinganingiz uchun 1 minutga blokga tushdingiz")
+#             await message.delete() 
+#             break
+
+
+
+
+
+
+# @dp.message(IsCheckSubChannels())
+# async def kanalga_obuna(message:Message):
+#     text = ""
+#     inline_channel = InlineKeyboardBuilder()
+#     for index,channel in enumerate(CHANNELS):
+#         ChatInviteLink = await bot.create_chat_invite_link(channel)
+#         inline_channel.add(InlineKeyboardButton(text=f"{index+1}-kanal✅",url=ChatInviteLink.invite_link))
+#     inline_channel.adjust(1,repeat=True)
+#     button = inline_channel.as_markup()
+#     await message.answer(f"{text} KANALLARGA AZO BO'LING\nAZO BO'LSANGIZ ISHALYDI😶‍🌫️😎👨‍💻\nuni qilgandan so'ng\n \start bosing",reply_markup=button)
+
+# @dp.message(CommandStart())
+# async def command_start_handler(message: Message):
+#     full_name = message.from_user.full_name
+#     text = f"Salom {full_name}, Bu bizning birinchi botimiz"
+#     await message.answer(text)
+
+
+
+
+
+
+@dp.message(Command("cat"))
+async def get_cat(message:Message):
+    image_content = get_cat_image()
+    if image_content:
+        await message.answer_document(document=input_file.BufferedInputFile(file=image_content,filename="cat.png"))
+
+
+# #help commands
+@dp.message(Command("help"),F.chat.func(lambda chat: chat.type == "supergroup"))
+async def help_commands(message:Message):
+    await message.answer("Sizga qanday yordam kerak")
+
+
+
+#about commands
+@dp.message(Command("about"),F.chat.func(lambda chat: chat.type == "supergroup"))
+async def about_commands(message:Message):
+    await message.answer("Azizbek 2024\n@solo_hub")
+
+
+# @dp.message(Command("admin"),IsBotAdminFilter(ADMINS))
+# async def is_admin(message:Message):
+#     await message.answer(text="Admin menu",reply_markup=admin_keyboard.admin_button)
+
+
+
+
+# @dp.message(Adverts.adverts)
+# async def send_advert(message:Message,state:FSMContext):
+    
+#     message_id = message.message_id
+#     from_chat_id = message.from_user.id
+#     users = db.all_users_id()
+#     count = 0
+#     for user in users:
+#         try:
+#             await bot.copy_message(chat_id=user[0],from_chat_id=from_chat_id,message_id=message_id)
+#             count += 1
+#         except:
+#             pass
+#         time.sleep(0.01)
+    
+#     await message.answer(f"Reklama {count}ta foydalanuvchiga yuborildi")
+#     await state.clear()
+
+
+@dp.message(F.text)
+async def wiki_malumot(message:Message):
+    text = message.text
+    natija = malumot(text)
+    await message.reply(text=natija)
 
 
 @dp.startup()
